@@ -14,63 +14,53 @@ import subprocess
 
 
 # Pauses Spotify
-def pauseSpotify(token1, device_id):
+def pauseSpotify(token1, device_id, sp1):
     try:
-        sp = spotipy.Spotify(auth=token1)
-
-        results = sp.pause_playback(device_id=device_id)
-        print("Spotify player is now paused!")
+        results = sp1.pause_playback(device_id=device_id)
     except:
         print("Unable to find the device. Press play from the app first.")
 
 # Plays Spotify
-def playSpotify(token1, device_id):
+def playSpotify(token1, device_id, sp1):
     try:
-        sp = spotipy.Spotify(auth=token1)
-
-        results = sp.start_playback(device_id)
-        print("Spotify player is now playing!")
+        results = sp1.start_playback(device_id)
     except:
         print("Unable to find the device. Press play from the app first.")
 
 # Skips to next track
-def nextTrack(token1, device_id):
+def nextTrack(token1, device_id, sp1):
     try:
-        sp = spotipy.Spotify(auth=token1)
-
-        results = sp.next_track(device_id)
+        results = sp1.next_track(device_id)
     except:
         print("Unable to find the device. Press play from the app first.")
 
 # Plays previous track
-def previousTrack(token1, device_id):
+def previousTrack(token1, device_id, sp1):
     try:
-        sp = spotipy.Spotify(auth=token1)
-
-        results = sp.previous_track(device_id)
+        results = sp1.previous_track(device_id)
     except:
         print("Unable to find the device. Press play from the app first.")
 
 # Checks and returns the current player status
-def checkPlayerStatus(token2):
+def checkPlayerStatus(token2, sp2):
     try:
-        sp = spotipy.Spotify(auth=token2)
+        results = sp2.currently_playing(market='US')
 
-        results = sp.currently_playing(market='US')
-
-        return(results['is_playing'])
+        return results['is_playing']
     except:
-        return(False)
+        return False
 
 def main():
-    subprocess.Popen(['']) # Opens the Spotify app on my machine
+    newToken = 0
+
+    subprocess.Popen(['C:\\Users\\INSERTUSERHERE\\AppData\\Roaming\\Spotify\\Spotify.exe']) # Opens the Spotify app on my machine
 
     username = ""
     scope1 = "user-modify-playback-state"
     scope2 = "user-read-currently-playing"
     client_id = ""
     client_secret = ""
-    redirect_uri = ""
+    redirect_uri = "http://localhost:8888/callback/"
 
     device_id = ""
 
@@ -90,41 +80,59 @@ def main():
         client_secret = client_secret,
         redirect_uri = redirect_uri)
 
+    sp1 = spotipy.Spotify(auth=token1)
+    sp2 = spotipy.Spotify(auth=token2)
+
     # Loop containing custom keybindings to pause and play the spotify app
     # I've matched these to my scene keybinds in OBS and added a couple of extras
+    # Edit the keybinds to your liking
     while True:
-        if keyboard.is_pressed("Ctrl + ["):
+        if keyboard.is_pressed("Ctrl + alt + ["):
             # Previous Track
-            if checkPlayerStatus(token2):
-                previousTrack(token1, device_id)
-        elif keyboard.is_pressed("Ctrl + ]"):
+            if checkPlayerStatus(token2, sp2):
+                previousTrack(token1, device_id, sp1)
+        elif keyboard.is_pressed("Ctrl + alt + ]"):
             # Next Track
-            if checkPlayerStatus(token2):
-                nextTrack(token1, device_id)
+            if checkPlayerStatus(token2, sp2):
+                nextTrack(token1, device_id, sp1)
+        elif keyboard.is_pressed("Ctrl + alt + n"):
+            # Pause
+            if checkPlayerStatus(token2, sp2):
+                pauseSpotify(token1, device_id, sp1)
+        elif keyboard.is_pressed("Ctrl + alt + m"):
+            # Play
+            if not checkPlayerStatus(token2, sp2):
+                playSpotify(token1, device_id, sp1)
         elif keyboard.is_pressed("Ctrl + F1"):
             # Play
-            if not checkPlayerStatus(token2):
-                playSpotify(token1, device_id)
+            if not checkPlayerStatus(token2, sp2):
+                playSpotify(token1, device_id, sp1)
         elif keyboard.is_pressed("Ctrl + F2"):
             # Pause
-            if checkPlayerStatus(token2):
-                pauseSpotify(token1, device_id)
+            if checkPlayerStatus(token2, sp2):
+                pauseSpotify(token1, device_id, sp1)
         elif keyboard.is_pressed("Ctrl + F3"):
             # Pause
-            if checkPlayerStatus(token2):
-                pauseSpotify(token1, device_id)
+            if checkPlayerStatus(token2, sp2):
+                pauseSpotify(token1, device_id, sp1)
         elif keyboard.is_pressed("Ctrl + F4"):
             #Play
-            if not checkPlayerStatus(token2):
-                playSpotify(token1, device_id)
+            if not checkPlayerStatus(token2, sp2):
+                playSpotify(token1, device_id, sp1)
         elif keyboard.is_pressed("Ctrl + F5"):
             #Play
-            if not checkPlayerStatus(token2):
-                playSpotify(token1, device_id)
-        elif keyboard.is_pressed("Ctrl + /"): # Ends the program
+            if not checkPlayerStatus(token2, sp2):
+                playSpotify(token1, device_id, sp1)
+        elif keyboard.is_pressed("Ctrl + F11"):
+            newToken = 1
+            break
+        elif keyboard.is_pressed("Ctrl + alt + /"): # Ends the program
             print("Goodbye")
             break
             
+    # Prevents multiple loops from running when refreshing for new token
+    if newToken == 1:
+        main()
 
 if __name__ == '__main__':
     main()
